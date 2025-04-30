@@ -1,0 +1,21 @@
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+      transactions: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+      beneficiaries: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+    }
+  }
+}
