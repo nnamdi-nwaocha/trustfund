@@ -1,65 +1,75 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useAuth } from "@/context/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { AlertCircle, Loader2, Shield } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState } from "react";
+import { useAuth } from "@/context/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Loader2, Shield } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("login")
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const { signIn, signUp } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { signIn, signUp } = useAuth();
 
   // Handle sign in
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setSuccessMessage(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
 
     try {
-      await signIn(email, password)
+      await signIn(email, password);
     } catch (error: any) {
-      console.error("Login error:", error)
-      setError(error.message || "Failed to sign in")
+      console.error("Login error:", error);
+      setError(error.message || "Failed to sign in");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Handle sign up
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setSuccessMessage(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
 
     try {
-      await signUp(email, password)
-      setSuccessMessage("Account created successfully! Redirecting to dashboard...")
+      await signUp(email, password);
+      setSuccessMessage(
+        "Verification email sent. Please check your inbox to verify your account."
+      );
     } catch (error: any) {
-      console.error("Signup error:", error)
-      setError(error.message || "Failed to sign up")
+      console.error("Signup error:", error);
+      setError(error.message || "Failed to sign up");
 
       // If the user already exists, switch to login tab
       if (error.message?.includes("already exists")) {
-        setActiveTab("login")
+        setActiveTab("login");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -68,11 +78,19 @@ export default function LoginPage() {
           <div className="flex justify-center mb-2">
             <Shield className="h-12 w-12 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-blue-600">Trustfund</CardTitle>
-          <CardDescription className="text-center">Built on trust. Designed for your future.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center text-blue-600">
+            Trustfund
+          </CardTitle>
+          <CardDescription className="text-center">
+            Built on trust. Designed for your future.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="login"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -105,7 +123,15 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Input
                     id="password"
                     type="password"
@@ -150,7 +176,9 @@ export default function LoginPage() {
                     required
                     minLength={6}
                   />
-                  <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
+                  <p className="text-xs text-gray-500">
+                    Password must be at least 6 characters
+                  </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
@@ -167,9 +195,11 @@ export default function LoginPage() {
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">Secure financial services for everyone</p>
+          <p className="text-sm text-gray-500">
+            Secure financial services for everyone
+          </p>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
