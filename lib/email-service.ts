@@ -1,7 +1,6 @@
 import { Resend } from "resend";
 
 // Initialize Resend with API key
-const resend = new Resend("re_LSWEg1LD_NCNyewgghxoQnAY5hDkHDrmp");
 
 // Email templates
 export async function sendVerificationEmail(email: string, token: string) {
