@@ -1,13 +1,20 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Loader2,
   LogOut,
@@ -19,134 +26,137 @@ import {
   Search,
   Users,
   ChevronRight,
-} from "lucide-react"
-import { getSupabase } from "@/lib/supabase"
-import { formatCurrency } from "@/lib/utils"
-import { toast } from "@/components/ui/use-toast"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "lucide-react";
+import { getSupabase } from "@/lib/supabase";
+import { formatCurrency } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface User {
-  id: string
-  email: string
-  role: string
-  created_at: string
+  email_verified: boolean;
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
   profile?: {
-    account_number: string
-    balance: number
-  }
+    account_number: string;
+    balance: number;
+  };
 }
 
 export default function AdminDashboardPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [amount, setAmount] = useState("")
-  const [adminUser, setAdminUser] = useState<any>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState("all")
-  const router = useRouter()
-  const supabase = getSupabase()
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [amount, setAmount] = useState("");
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const router = useRouter();
+  const supabase = getSupabase();
 
   // Check if user is admin
   useEffect(() => {
     const checkAdmin = () => {
       try {
-        const adminUserStr = localStorage.getItem("adminUser")
+        const adminUserStr = localStorage.getItem("adminUser");
         if (!adminUserStr) {
-          router.push("/admin/login")
-          return
+          router.push("/admin/login");
+          return;
         }
 
-        const admin = JSON.parse(adminUserStr)
+        const admin = JSON.parse(adminUserStr);
         if (admin.role !== "ADMIN") {
-          router.push("/admin/login")
-          return
+          router.push("/admin/login");
+          return;
         }
 
-        setAdminUser(admin)
+        setAdminUser(admin);
       } catch (error) {
-        console.error("Error checking admin:", error)
-        router.push("/admin/login")
+        console.error("Error checking admin:", error);
+        router.push("/admin/login");
       }
-    }
+    };
 
-    checkAdmin()
-  }, [router])
+    checkAdmin();
+  }, [router]);
 
   // Load users
   const loadUsers = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       const { data, error } = await supabase
         .from("users")
-        .select(`
+        .select(
+          `
           *,
           profile:profiles(account_number, balance)
-        `)
-        .order("created_at", { ascending: false })
+        `
+        )
+        .order("created_at", { ascending: false });
 
-      if (error) throw error
+      if (error) throw error;
 
-      setUsers(data || [])
-      setFilteredUsers(data || [])
+      setUsers(data || []);
+      setFilteredUsers(data || []);
     } catch (err: any) {
-      console.error("Error loading users:", err)
-      setError(err.message || "Failed to load users")
+      console.error("Error loading users:", err);
+      setError(err.message || "Failed to load users");
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (adminUser) {
-      loadUsers()
+      loadUsers();
     }
-  }, [adminUser])
+  }, [adminUser]);
 
   // Filter users based on search and tab
   useEffect(() => {
-    if (!users.length) return
+    if (!users.length) return;
 
-    let filtered = [...users]
+    let filtered = [...users];
 
     // Apply search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (user) =>
           user.email.toLowerCase().includes(query) ||
           user.profile?.account_number.includes(query) ||
-          user.role.toLowerCase().includes(query),
-      )
+          user.role.toLowerCase().includes(query)
+      );
     }
 
     // Apply tab filter
     if (activeTab === "admin") {
-      filtered = filtered.filter((user) => user.role === "ADMIN")
+      filtered = filtered.filter((user) => user.role === "ADMIN");
     } else if (activeTab === "user") {
-      filtered = filtered.filter((user) => user.role === "USER")
+      filtered = filtered.filter((user) => user.role === "USER");
     }
 
-    setFilteredUsers(filtered)
-  }, [searchQuery, activeTab, users])
+    setFilteredUsers(filtered);
+  }, [searchQuery, activeTab, users]);
 
   const handleRefresh = () => {
-    setRefreshing(true)
-    loadUsers()
-  }
+    setRefreshing(true);
+    loadUsers();
+  };
 
   const handleLogout = () => {
-    localStorage.removeItem("adminUser")
-    document.cookie = "adminUser=; path=/; max-age=0"
-    router.push("/admin/login")
-  }
+    localStorage.removeItem("adminUser");
+    document.cookie = "adminUser=; path=/; max-age=0";
+    router.push("/admin/login");
+  };
 
   const handleAddFunds = async () => {
     if (!selectedUser || !amount) {
@@ -154,14 +164,14 @@ export default function AdminDashboardPage() {
         title: "Error",
         description: "Please enter an amount",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     try {
-      const amountNum = Number.parseFloat(amount)
+      const amountNum = Number.parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
-        throw new Error("Please enter a valid amount")
+        throw new Error("Please enter a valid amount");
       }
 
       // Get current balance
@@ -169,18 +179,18 @@ export default function AdminDashboardPage() {
         .from("profiles")
         .select("balance")
         .eq("id", selectedUser.id)
-        .single()
+        .single();
 
-      if (profileError) throw profileError
+      if (profileError) throw profileError;
 
       // Update balance
-      const newBalance = profile.balance + amountNum
+      const newBalance = profile.balance + amountNum;
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ balance: newBalance })
-        .eq("id", selectedUser.id)
+        .eq("id", selectedUser.id);
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       // Create transaction record
       await supabase.from("transactions").insert({
@@ -188,95 +198,101 @@ export default function AdminDashboardPage() {
         recipient_id: selectedUser.id,
         amount: amountNum,
         note: "Admin deposit",
-      })
+      });
 
       // Refresh users
-      loadUsers()
-      setAmount("")
-      setSelectedUser(null)
+      loadUsers();
+      setAmount("");
+      setSelectedUser(null);
       toast({
         title: "Funds added",
         description: `Successfully added ${formatCurrency(amountNum)} to ${selectedUser.email}'s account.`,
-      })
+      });
     } catch (err: any) {
-      console.error("Error adding funds:", err)
+      console.error("Error adding funds:", err);
       toast({
         title: "Error",
         description: err.message || "Failed to add funds",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleDeleteUser = async (user: User) => {
-    if (!user) return
+    if (!user) return;
 
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
-      console.log("Deleting user:", user.id)
+      console.log("Deleting user:", user.id);
 
       // First, check and delete any beneficiary relationships
       const { error: beneficiaryError } = await supabase
         .from("beneficiaries")
         .delete()
-        .or(`user_id.eq.${user.id},beneficiary_id.eq.${user.id}`)
+        .or(`user_id.eq.${user.id},beneficiary_id.eq.${user.id}`);
 
       if (beneficiaryError) {
-        console.error("Error deleting beneficiaries:", beneficiaryError)
+        console.error("Error deleting beneficiaries:", beneficiaryError);
       }
 
       // Then, check and delete any transactions
       const { error: transactionError } = await supabase
         .from("transactions")
         .delete()
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
 
       if (transactionError) {
-        console.error("Error deleting transactions:", transactionError)
+        console.error("Error deleting transactions:", transactionError);
       }
 
       // Delete profile
-      const { error: profileError } = await supabase.from("profiles").delete().eq("id", user.id)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user.id);
 
       if (profileError) {
-        console.error("Error deleting profile:", profileError)
-        throw profileError
+        console.error("Error deleting profile:", profileError);
+        throw profileError;
       }
 
       // Finally, delete user
-      const { error: userError } = await supabase.from("users").delete().eq("id", user.id)
+      const { error: userError } = await supabase
+        .from("users")
+        .delete()
+        .eq("id", user.id);
 
       if (userError) {
-        console.error("Error deleting user:", userError)
-        throw userError
+        console.error("Error deleting user:", userError);
+        throw userError;
       }
 
       // Update users list by filtering out the deleted user
-      setUsers(users.filter((u) => u.id !== user.id))
-      setFilteredUsers(filteredUsers.filter((u) => u.id !== user.id))
+      setUsers(users.filter((u) => u.id !== user.id));
+      setFilteredUsers(filteredUsers.filter((u) => u.id !== user.id));
 
       toast({
         title: "User deleted",
         description: `Successfully deleted user ${user.email}.`,
-      })
+      });
     } catch (err: any) {
-      console.error("Error in delete process:", err)
+      console.error("Error in delete process:", err);
       toast({
         title: "Error deleting user",
         description: err.message || "Failed to delete user",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   if (!adminUser) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   return (
@@ -287,7 +303,9 @@ export default function AdminDashboardPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Shield className="h-6 w-6 text-blue-600 mr-2" />
-              <h1 className="text-xl font-bold text-blue-600">Trustfund Admin</h1>
+              <h1 className="text-xl font-bold text-blue-600">
+                Trustfund Admin
+              </h1>
             </div>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
@@ -309,7 +327,11 @@ export default function AdminDashboardPage() {
             />
           </div>
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="user">Users</TabsTrigger>
@@ -320,8 +342,17 @@ export default function AdminDashboardPage() {
 
         {/* Refresh Button */}
         <div className="flex justify-end mb-4">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
             {refreshing ? "Refreshing..." : "Refresh"}
           </Button>
         </div>
@@ -343,7 +374,9 @@ export default function AdminDashboardPage() {
           <div className="text-center py-8 text-gray-500">
             <Users className="h-12 w-12 mx-auto mb-2 text-gray-400" />
             <p>No users found</p>
-            {searchQuery && <p className="text-sm">Try a different search term</p>}
+            {searchQuery && (
+              <p className="text-sm">Try a different search term</p>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -361,15 +394,30 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center mt-1">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full text-xs ${
-                            user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
+                            user.role === "ADMIN"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-blue-100 text-blue-800"
                           }`}
                         >
                           {user.role}
                         </span>
                         <span className="mx-2 text-gray-300">•</span>
                         <span className="text-xs text-gray-500">
-                          {user.profile ? formatCurrency(user.profile.balance) : "N/A"}
+                          {user.profile
+                            ? formatCurrency(user.profile.balance)
+                            : "N/A"}
                         </span>
+                        <span className="mx-2 text-gray-300">•</span>
+                        {/* Email Verified Indicator */}
+                        {user.email_verified ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800">
+                            Not Verified
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -380,7 +428,10 @@ export default function AdminDashboardPage() {
                           <ChevronRight className="h-5 w-5 text-gray-400" />
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="bottom" className="h-[85vh] rounded-t-xl">
+                      <SheetContent
+                        side="bottom"
+                        className="h-[85vh] rounded-t-xl"
+                      >
                         <SheetHeader className="text-left mb-6">
                           <SheetTitle>User Details</SheetTitle>
                           <SheetDescription>{user.email}</SheetDescription>
@@ -389,16 +440,24 @@ export default function AdminDashboardPage() {
                         <div className="space-y-6">
                           {/* User Info */}
                           <div className="space-y-2">
-                            <h3 className="text-sm font-medium text-gray-500">Account Information</h3>
+                            <h3 className="text-sm font-medium text-gray-500">
+                              Account Information
+                            </h3>
                             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-md">
                               <div>
-                                <p className="text-xs text-gray-500">Account Number</p>
-                                <p className="font-medium">{user.profile?.account_number || "N/A"}</p>
+                                <p className="text-xs text-gray-500">
+                                  Account Number
+                                </p>
+                                <p className="font-medium">
+                                  {user.profile?.account_number || "N/A"}
+                                </p>
                               </div>
                               <div>
                                 <p className="text-xs text-gray-500">Balance</p>
                                 <p className="font-medium">
-                                  {user.profile ? formatCurrency(user.profile.balance) : "N/A"}
+                                  {user.profile
+                                    ? formatCurrency(user.profile.balance)
+                                    : "N/A"}
                                 </p>
                               </div>
                               <div>
@@ -407,14 +466,20 @@ export default function AdminDashboardPage() {
                               </div>
                               <div>
                                 <p className="text-xs text-gray-500">Created</p>
-                                <p className="font-medium text-sm">{new Date(user.created_at).toLocaleDateString()}</p>
+                                <p className="font-medium text-sm">
+                                  {new Date(
+                                    user.created_at
+                                  ).toLocaleDateString()}
+                                </p>
                               </div>
                             </div>
                           </div>
 
                           {/* Add Funds */}
                           <div className="space-y-3">
-                            <h3 className="text-sm font-medium text-gray-500">Add Funds</h3>
+                            <h3 className="text-sm font-medium text-gray-500">
+                              Add Funds
+                            </h3>
                             <div className="flex space-x-2">
                               <div className="flex-1">
                                 <Input
@@ -424,12 +489,15 @@ export default function AdminDashboardPage() {
                                   step="0.01"
                                   value={amount}
                                   onChange={(e) => {
-                                    setAmount(e.target.value)
-                                    setSelectedUser(user)
+                                    setAmount(e.target.value);
+                                    setSelectedUser(user);
                                   }}
                                 />
                               </div>
-                              <Button onClick={handleAddFunds} disabled={!amount}>
+                              <Button
+                                onClick={handleAddFunds}
+                                disabled={!amount}
+                              >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Add Funds
                               </Button>
@@ -470,20 +538,29 @@ export default function AdminDashboardPage() {
         <div className="flex justify-around">
           <div className="text-center">
             <p className="text-xs text-gray-500">Total Users</p>
-            <p className="font-semibold">{users.filter((u) => u.role === "USER").length}</p>
+            <p className="font-semibold">
+              {users.filter((u) => u.role === "USER").length}
+            </p>
           </div>
           <div className="text-center">
             <p className="text-xs text-gray-500">Admins</p>
-            <p className="font-semibold">{users.filter((u) => u.role === "ADMIN").length}</p>
+            <p className="font-semibold">
+              {users.filter((u) => u.role === "ADMIN").length}
+            </p>
           </div>
           <div className="text-center">
             <p className="text-xs text-gray-500">Total Balance</p>
             <p className="font-semibold">
-              {formatCurrency(users.reduce((sum, user) => sum + (user.profile?.balance || 0), 0))}
+              {formatCurrency(
+                users.reduce(
+                  (sum, user) => sum + (user.profile?.balance || 0),
+                  0
+                )
+              )}
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

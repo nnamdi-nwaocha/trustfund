@@ -171,3 +171,17 @@ export async function signOut() {
 export async function getCurrentUser(): Promise<User | null> {
   return getSession();
 }
+
+export async function resendVerificationEmail(
+  userId: string,
+  email: string
+): Promise<boolean> {
+  try {
+    const token = await createVerificationToken(userId);
+    await sendVerificationEmail(email, token);
+    return true;
+  } catch (error) {
+    console.error("Error resending verification email:", error);
+    return false;
+  }
+}

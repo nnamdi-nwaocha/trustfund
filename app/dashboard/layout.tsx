@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/context/auth-context"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Home, Send, Users, LogOut, Shield } from "lucide-react"
-import { LiveChat } from "@/components/live-chat"
+import { useAuth } from "@/context/auth-context";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Home, Send, Users, LogOut, Shield } from "lucide-react";
+import { LiveChat } from "@/components/live-chat";
+import { EmailVerificationBanner } from "@/components/email-verification-banner";
 
 export default function DashboardLayout({ children }) {
-  const { signOut } = useAuth()
-  const pathname = usePathname()
+  const { signOut, user } = useAuth();
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -28,10 +29,17 @@ export default function DashboardLayout({ children }) {
         </div>
       </header>
 
+      {/* <main className="flex-1 overflow-y-auto pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {children}
+        </div>
+      </main> */}
       <main className="flex-1 overflow-y-auto pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">{children}</div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <EmailVerificationBanner />
+          {children}
+        </div>
       </main>
-
       {/* LiveChat integration */}
       <LiveChat />
 
@@ -42,33 +50,59 @@ export default function DashboardLayout({ children }) {
             <Link
               href="/dashboard"
               className={`flex flex-col items-center justify-center w-full text-xs font-medium ${
-                pathname === "/dashboard" ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                pathname === "/dashboard"
+                  ? "text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <Home className="h-6 w-6" />
               <span>Home</span>
             </Link>
             <Link
-              href="/send-money"
+              href={user?.email_verified ? "/send-money" : "#"}
               className={`flex flex-col items-center justify-center w-full text-xs font-medium ${
-                pathname === "/send-money" ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                pathname === "/send-money"
+                  ? "text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              <Send className="h-6 w-6" />
-              <span>Send</span>
+              <Button
+                variant="outline"
+                className="w-full h-20 flex flex-col"
+                disabled={!user?.email_verified}
+                title={
+                  !user?.email_verified ? "Verify your email to send money" : ""
+                }
+              >
+                <Send className="h-6 w-6" />
+                <span>Send</span>
+              </Button>
             </Link>
             <Link
-              href="/beneficiaries"
+              href={user?.email_verified ? "/beneficiaries" : "#"}
               className={`flex flex-col items-center justify-center w-full text-xs font-medium ${
-                pathname === "/beneficiaries" ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                pathname === "/beneficiaries"
+                  ? "text-blue-600"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              <Users className="h-6 w-6" />
-              <span>Beneficiaries</span>
+              <Button
+                variant="outline"
+                className="w-full h-20 flex flex-col"
+                disabled={!user?.email_verified}
+                title={
+                  !user?.email_verified
+                    ? "Verify your email to view beneficiaries"
+                    : ""
+                }
+              >
+                <Users className="h-6 w-6" />
+                <span>Beneficiaries</span>
+              </Button>
             </Link>
           </div>
         </div>
       </nav>
     </div>
-  )
+  );
 }
