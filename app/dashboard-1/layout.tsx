@@ -4,13 +4,15 @@ import { useAuth } from "@/context/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Home, Send, Users, LogOut, Shield } from "lucide-react";
+import { Home, Send, Users, LogOut, Shield, Settings } from "lucide-react";
 import { LiveChat } from "@/components/live-chat";
 import { EmailVerificationBanner } from "@/components/email-verification-banner";
 
 export default function DashboardLayout({ children }) {
   const { signOut, user } = useAuth();
   const pathname = usePathname();
+
+  console.log("User in DashboardLayout:", user);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -21,19 +23,24 @@ export default function DashboardLayout({ children }) {
               <Shield className="h-6 w-6 text-blue-600 mr-2" />
               <h1 className="text-xl font-bold text-blue-600">Trustfund</h1>
             </div>
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="h-5 w-5 mr-1" />
-              <span className="sr-only sm:not-sr-only">Sign out</span>
-            </Button>
+            <div className="flex items-center space-x-4">
+              {/* Settings Button */}
+              <Link href="/settings">
+                <Button variant="ghost" size="sm">
+                  <Settings className="h-5 w-5" />
+                  <span className="sr-only sm:not-sr-only">Settings</span>
+                </Button>
+              </Link>
+              {/* Sign Out Button */}
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only sm:not-sr-only">Sign out</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* <main className="flex-1 overflow-y-auto pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </div>
-      </main> */}
       <main className="flex-1 overflow-y-auto pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <EmailVerificationBanner />

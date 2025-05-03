@@ -8,25 +8,31 @@ export interface User {
   email: string;
   role?: string;
   email_verified?: boolean;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  country?: string;
 }
 
 // Session management
 export function setSession(user: User) {
   if (typeof window !== "undefined") {
     localStorage.setItem("user", JSON.stringify(user));
-    // Also set a cookie for middleware
-    document.cookie = `user=${JSON.stringify(user)}; path=/; max-age=2592000`; // 30 days
+    document.cookie = `user_id=${user.id}; path=/; max-age=2592000`; // 30 days
   }
 }
 
 export function getSession(): User | null {
   if (typeof window !== "undefined") {
     const userStr = localStorage.getItem("user");
+    console.log("Session data:", userStr);
     if (userStr) {
       try {
         return JSON.parse(userStr);
       } catch (e) {
         console.error("Error parsing user session:", e);
+        localStorage.removeItem("user");
         return null;
       }
     }
@@ -47,7 +53,17 @@ function encodePassword(password: string): string {
 }
 
 // Authentication functions
-export async function signUp(email: string, password: string): Promise<User> {
+export async function signUp(
+  email: string,
+  password: string,
+  additionalData: {
+    username: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    country: string;
+  }
+): Promise<User> {
   try {
     const supabase = getSupabase();
     const encodedPassword = encodePassword(password);
@@ -73,9 +89,14 @@ export async function signUp(email: string, password: string): Promise<User> {
       .from("users")
       .insert({
         email,
-        password: encodedPassword,
-        role: "USER",
+        password: encodedPassword, // Ensure this is hashed
+        username: additionalData.username,
+        first_name: additionalData.first_name,
+        last_name: additionalData.last_name,
+        phone_number: additionalData.phone_number,
+        country: additionalData.country,
         email_verified: false,
+        role: "USER",
       })
       .select()
       .single();
@@ -88,6 +109,8 @@ export async function signUp(email: string, password: string): Promise<User> {
     if (!newUser) {
       throw new Error("User creation failed");
     }
+
+    console.log("User data on sign-up:", newUser);
 
     // Create profile for the user with 0 balance
     const accountNumber = Math.floor(
@@ -122,6 +145,9 @@ export async function signUp(email: string, password: string): Promise<User> {
       email: newUser.email,
       role: newUser.role,
       email_verified: newUser.email_verified,
+      username: newUser.username,
+      first_name: newUser.first_name,
+      last_name: newUser.last_name,
     };
     setSession(userData);
 
@@ -153,8 +179,20 @@ export async function signIn(email: string, password: string): Promise<User> {
       throw new Error("User not found");
     }
 
+    console.log("User data on sign-in:", user);
+
     // Set session
-    const userData: User = { id: user.id, email: user.email, role: user.role };
+    const userData: User = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      email_verified: user.email_verified,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      phone_number: user.phone_number,
+      country: user.country,
+    };
     setSession(userData);
 
     return userData;

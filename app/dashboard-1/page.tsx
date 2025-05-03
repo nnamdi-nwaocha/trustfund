@@ -11,6 +11,8 @@ import { getSupabase } from "@/lib/supabase";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  console.log("User in DashboardPage:", user);
+
   const [profile, setProfile] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);

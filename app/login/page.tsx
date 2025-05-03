@@ -19,15 +19,33 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, Loader2, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import Select from "react-select";
+import countryList from "react-select-country-list";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [country, setCountry] = useState<{
+    label: string;
+    value: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
+
+  const countryOptions = countryList().getData();
+
+  const handleCountryChange = (selectedOption: any) => {
+    setCountry(selectedOption);
+  };
 
   // Handle sign in
   const handleSignIn = async (e: React.FormEvent) => {
@@ -37,12 +55,14 @@ export default function LoginPage() {
     setSuccessMessage(null);
 
     try {
+      console.log("Signing in with email:", email);
       await signIn(email, password);
+      console.log("Sign-in successful. Redirecting...");
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.message || "Failed to sign in");
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -54,7 +74,13 @@ export default function LoginPage() {
     setSuccessMessage(null);
 
     try {
-      await signUp(email, password);
+      await signUp(email, password, {
+        username,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        country: country?.label || "",
+      });
       setSuccessMessage(
         "Verification email sent. Please check your inbox to verify your account."
       );
@@ -179,6 +205,63 @@ export default function LoginPage() {
                   <p className="text-xs text-gray-500">
                     Password must be at least 6 characters
                   </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-username">Username</Label>
+                  <Input
+                    id="signup-username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-first-name">First Name</Label>
+                  <Input
+                    id="signup-first-name"
+                    type="text"
+                    placeholder="Enter your first name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-last-name">Last Name</Label>
+                  <Input
+                    id="signup-last-name"
+                    type="text"
+                    placeholder="Enter your last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-phone-number">Phone Number</Label>
+                  <PhoneInput
+                    country={"us"}
+                    value={phoneNumber}
+                    onChange={(phone) => setPhoneNumber(phone)}
+                    inputProps={{
+                      name: "phone",
+                      required: true,
+                      autoFocus: false,
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-country">Country</Label>
+                  <Select
+                    id="signup-country"
+                    options={countryOptions}
+                    value={country}
+                    onChange={handleCountryChange}
+                    placeholder="Select your country"
+                    isSearchable
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
