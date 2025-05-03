@@ -143,7 +143,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-2 gap-4">
         <Link href={user?.email_verified ? "/send-money" : "#"} passHref>
           <Button
             className="w-full h-20 flex flex-col"
@@ -172,7 +172,7 @@ export default function DashboardPage() {
             <span>Beneficiaries</span>
           </Button>
         </Link>
-      </div>
+      </div> */}
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Recent Transactions</h2>

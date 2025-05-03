@@ -19,7 +19,9 @@ export interface User {
 export function setSession(user: User) {
   if (typeof window !== "undefined") {
     localStorage.setItem("user", JSON.stringify(user));
-    document.cookie = `user_id=${user.id}; path=/; max-age=2592000`; // 30 days
+    document.cookie = `user=${encodeURIComponent(
+      JSON.stringify(user)
+    )}; path=/; max-age=2592000; SameSite=Strict;`;
   }
 }
 
