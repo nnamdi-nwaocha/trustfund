@@ -34,6 +34,8 @@ export async function POST(req: Request) {
     }
 
     const userId = getCookieValue(req.headers.get("cookie"), "user_id");
+    console.log("Cookie header:", req.headers.get("cookie"));
+    console.log("Extracted user_id:", userId);
     if (!userId) {
       console.error("User ID not found in cookies");
       return NextResponse.json(
@@ -44,12 +46,13 @@ export async function POST(req: Request) {
 
     const supabase = getSupabase();
 
-    // Fetch the current user to compare fields
+    console.log("Fetching user with ID:", userId);
     const { data: currentUser, error: fetchError } = await supabase
       .from("users")
       .select("email")
       .eq("id", userId)
       .single();
+    console.log("Database response:", { currentUser, fetchError });
 
     if (fetchError) {
       console.error("Error fetching current user:", fetchError);

@@ -111,12 +111,12 @@ export default function SettingsPage() {
   const [username, setUsername] = useState(user?.username || "");
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [country, setCountry] = useState(
+  const [phoneNumber] = useState(user?.phone_number || ""); // Static value
+  const [country] = useState(
     countryList()
       .getData()
-      .find((c) => c.label === user?.country) || null
+      .find((c) => c.label === user?.country) || null // Static value
   );
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -140,8 +140,6 @@ export default function SettingsPage() {
             username: field === "username" ? value : username,
             first_name: field === "first_name" ? value : firstName,
             last_name: field === "last_name" ? value : lastName,
-            phone_number: field === "phone_number" ? value : phoneNumber,
-            country: field === "country" ? value : country?.label,
             email: field === "email" ? value.trim().toLowerCase() : email,
             isEmailChanged,
           }),
@@ -169,10 +167,8 @@ export default function SettingsPage() {
         setLoading(false);
       }
     },
-    [user, username, firstName, lastName, phoneNumber, country, email, setUser]
+    [user, username, firstName, lastName, email, setUser]
   );
-
-  const countryOptions = countryList().getData();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -243,51 +239,31 @@ export default function SettingsPage() {
               loading={loading}
             />
 
-            <SettingField
-              label="Phone Number"
-              value={phoneNumber}
-              fieldName="phone_number"
-              currentValue={phoneNumber}
-              setCurrentValue={setPhoneNumber}
-              editingField={editingField}
-              setEditingField={setEditingField}
-              handleUpdate={handleUpdate}
-              loading={loading}
-              customInput={
-                <div className="w-full">
-                  <PhoneInput
-                    country={"us"}
-                    value={phoneNumber}
-                    onChange={(phone) => setPhoneNumber(phone)}
-                    containerClass="w-full"
-                    inputClass="!w-full"
-                  />
-                </div>
-              }
-            />
+            {/* Static Phone Number Field */}
+            <div className="py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Phone Number
+                </label>
+                <span className="text-gray-900 dark:text-gray-100">
+                  {phoneNumber || "Not set"}
+                </span>
+              </div>
+              <Separator className="mt-4" />
+            </div>
 
-            <SettingField
-              label="Country"
-              value={country?.label || ""}
-              fieldName="country"
-              currentValue={country}
-              setCurrentValue={setCountry}
-              editingField={editingField}
-              setEditingField={setEditingField}
-              handleUpdate={handleUpdate}
-              loading={loading}
-              customInput={
-                <div className="w-full sm:w-64">
-                  <Select
-                    options={countryOptions}
-                    value={country}
-                    onChange={(selectedOption) => setCountry(selectedOption)}
-                    className="w-full"
-                    classNamePrefix="react-select"
-                  />
-                </div>
-              }
-            />
+            {/* Static Country Field */}
+            <div className="py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Country
+                </label>
+                <span className="text-gray-900 dark:text-gray-100">
+                  {country?.label || "Not set"}
+                </span>
+              </div>
+              <Separator className="mt-4" />
+            </div>
 
             <SettingField
               label="Email"

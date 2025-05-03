@@ -23,6 +23,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import Select from "react-select";
 import countryList from "react-select-country-list";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,6 +41,7 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
+  const router = useRouter();
 
   const countryOptions = countryList().getData();
 
@@ -58,6 +60,7 @@ export default function LoginPage() {
       console.log("Signing in with email:", email);
       await signIn(email, password);
       console.log("Sign-in successful. Redirecting...");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.message || "Failed to sign in");

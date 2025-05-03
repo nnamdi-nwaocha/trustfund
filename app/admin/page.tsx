@@ -42,6 +42,10 @@ interface User {
     account_number: string;
     balance: number;
   };
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  country?: string;
 }
 
 export default function AdminDashboardPage() {
@@ -133,7 +137,12 @@ export default function AdminDashboardPage() {
         (user) =>
           user.email.toLowerCase().includes(query) ||
           user.profile?.account_number.includes(query) ||
-          user.role.toLowerCase().includes(query)
+          user.role.toLowerCase().includes(query) ||
+          `${user.first_name} ${user.last_name}`
+            .toLowerCase()
+            .includes(query) ||
+          user.phone_number?.includes(query) ||
+          user.country?.toLowerCase().includes(query)
       );
     }
 
@@ -391,6 +400,15 @@ export default function AdminDashboardPage() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{user.email}</p>
+                      <p className="text-sm text-gray-500">
+                        {user.first_name} {user.last_name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {user.phone_number || "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {user.country || "N/A"}
+                      </p>
                       <div className="flex items-center mt-1">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full text-xs ${
@@ -470,6 +488,28 @@ export default function AdminDashboardPage() {
                                   {new Date(
                                     user.created_at
                                   ).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">
+                                  Full Name
+                                </p>
+                                <p className="font-medium">
+                                  {user.first_name} {user.last_name}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">
+                                  Phone Number
+                                </p>
+                                <p className="font-medium">
+                                  {user.phone_number || "N/A"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">Country</p>
+                                <p className="font-medium">
+                                  {user.country || "N/A"}
                                 </p>
                               </div>
                             </div>

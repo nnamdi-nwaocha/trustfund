@@ -19,6 +19,7 @@ export interface User {
 export function setSession(user: User) {
   if (typeof window !== "undefined") {
     localStorage.setItem("user", JSON.stringify(user));
+    document.cookie = `user_id=${user.id}; path=/; max-age=2592000; SameSite=Strict;`;
     document.cookie = `user=${encodeURIComponent(
       JSON.stringify(user)
     )}; path=/; max-age=2592000; SameSite=Strict;`;
@@ -182,6 +183,7 @@ export async function signIn(email: string, password: string): Promise<User> {
     }
 
     console.log("User data on sign-in:", user);
+    console.log("Cookie after sign-in:", document.cookie);
 
     // Set session
     const userData: User = {
