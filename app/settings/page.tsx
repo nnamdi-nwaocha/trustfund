@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-
+import React, { memo, useCallback } from "react";
 import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
@@ -16,71 +15,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function SettingsPage() {
-  const { user, setUser } = useAuth();
-  const router = useRouter();
+interface SettingFieldProps {
+  label: string;
+  value: string;
+  fieldName: string;
+  currentValue: any;
+  setCurrentValue: (value: any) => void;
+  inputType?: string;
+  customInput?: React.ReactNode;
+  editingField: string | null;
+  setEditingField: (field: string | null) => void;
+  handleUpdate: (field: string, value: any) => Promise<void>;
+  loading: boolean;
+}
 
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [username, setUsername] = useState(user?.username || "");
-  const [firstName, setFirstName] = useState(user?.first_name || "");
-  const [lastName, setLastName] = useState(user?.last_name || "");
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [country, setCountry] = useState(
-    countryList()
-      .getData()
-      .find((c) => c.label === user?.country) || null
-  );
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleUpdate = async (field: string, value: any) => {
-    setLoading(true);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
-    try {
-      const isEmailChanged = field === "email" && value !== user?.email;
-
-      // Call API to update user details
-      const response = await fetch("/api/update-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          [field]: value,
-          isEmailChanged,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update user details");
-      }
-
-      // Update user in context
-      setUser(data.user);
-      setSuccessMessage("Details updated successfully!");
-
-      // If email was changed, prompt for verification
-      if (isEmailChanged) {
-        setSuccessMessage(
-          "Details updated successfully! Please verify your new email."
-        );
-      }
-
-      setEditingField(null);
-    } catch (error: any) {
-      setErrorMessage(error.message || "Failed to update details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const countryOptions = countryList().getData();
-
-  const SettingField = ({
+const SettingField = memo(
+  ({
     label,
     value,
     fieldName,
@@ -88,15 +38,11 @@ export default function SettingsPage() {
     setCurrentValue,
     inputType = "text",
     customInput = null,
-  }: {
-    label: string;
-    value: string;
-    fieldName: string;
-    currentValue: any;
-    setCurrentValue: (value: any) => void;
-    inputType?: string;
-    customInput?: React.ReactNode;
-  }) => (
+    editingField,
+    setEditingField,
+    handleUpdate,
+    loading,
+  }: SettingFieldProps) => (
     <div className="py-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -112,6 +58,7 @@ export default function SettingsPage() {
                   onChange={(e) => setCurrentValue(e.target.value)}
                   className="w-full"
                   required
+                  autoFocus
                 />
               )}
             </div>
@@ -153,7 +100,79 @@ export default function SettingsPage() {
       </div>
       <Separator className="mt-4" />
     </div>
+  )
+);
+
+export default function SettingsPage() {
+  const { user, setUser } = useAuth();
+  const router = useRouter();
+
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [username, setUsername] = useState(user?.username || "");
+  const [firstName, setFirstName] = useState(user?.first_name || "");
+  const [lastName, setLastName] = useState(user?.last_name || "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone_number || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [country, setCountry] = useState(
+    countryList()
+      .getData()
+      .find((c) => c.label === user?.country) || null
   );
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleUpdate = useCallback(
+    async (field: string, value: any) => {
+      setLoading(true);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+
+      try {
+        const isEmailChanged =
+          field === "email" &&
+          value.trim().toLowerCase() !== user?.email.trim().toLowerCase();
+
+        const response = await fetch("/api/update-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: field === "username" ? value : username,
+            first_name: field === "first_name" ? value : firstName,
+            last_name: field === "last_name" ? value : lastName,
+            phone_number: field === "phone_number" ? value : phoneNumber,
+            country: field === "country" ? value : country?.label,
+            email: field === "email" ? value.trim().toLowerCase() : email,
+            isEmailChanged,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to update user details");
+        }
+
+        setUser(data.user);
+        setSuccessMessage("Details updated successfully!");
+
+        if (isEmailChanged) {
+          setSuccessMessage(
+            "Details updated successfully! Please verify your new email."
+          );
+        }
+
+        setEditingField(null);
+      } catch (error: any) {
+        setErrorMessage(error.message || "Failed to update details");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, username, firstName, lastName, phoneNumber, country, email, setUser]
+  );
+
+  const countryOptions = countryList().getData();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -190,34 +209,50 @@ export default function SettingsPage() {
           <div>
             <SettingField
               label="Username"
-              value={user?.username || ""}
+              value={username}
               fieldName="username"
               currentValue={username}
               setCurrentValue={setUsername}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
             />
 
             <SettingField
               label="First Name"
-              value={user?.first_name || ""}
+              value={firstName}
               fieldName="first_name"
               currentValue={firstName}
               setCurrentValue={setFirstName}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
             />
 
             <SettingField
               label="Last Name"
-              value={user?.last_name || ""}
+              value={lastName}
               fieldName="last_name"
               currentValue={lastName}
               setCurrentValue={setLastName}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
             />
 
             <SettingField
               label="Phone Number"
-              value={user?.phone_number || ""}
+              value={phoneNumber}
               fieldName="phone_number"
               currentValue={phoneNumber}
               setCurrentValue={setPhoneNumber}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
               customInput={
                 <div className="w-full">
                   <PhoneInput
@@ -233,10 +268,14 @@ export default function SettingsPage() {
 
             <SettingField
               label="Country"
-              value={user?.country || ""}
+              value={country?.label || ""}
               fieldName="country"
               currentValue={country}
               setCurrentValue={setCountry}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
               customInput={
                 <div className="w-full sm:w-64">
                   <Select
@@ -252,10 +291,14 @@ export default function SettingsPage() {
 
             <SettingField
               label="Email"
-              value={user?.email || ""}
+              value={email}
               fieldName="email"
               currentValue={email}
               setCurrentValue={setEmail}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              handleUpdate={handleUpdate}
+              loading={loading}
               inputType="email"
             />
           </div>
@@ -263,4 +306,110 @@ export default function SettingsPage() {
       </Card>
     </div>
   );
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const {
+      username,
+      first_name,
+      last_name,
+      phone_number,
+      email,
+      isEmailChanged,
+    } = body;
+
+    // Validate input fields
+    if (!username || !first_name || !last_name || !phone_number || !email) {
+      return NextResponse.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    const userId = getCookieValue(req.headers.get("cookie"), "user_id");
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const supabase = getSupabase();
+
+    // Fetch the current user to compare fields
+    const { data: currentUser, error: fetchError } = await supabase
+      .from("users")
+      .select("email")
+      .eq("id", userId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching current user:", fetchError);
+      return NextResponse.json(
+        { error: "Failed to fetch current user details" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Current user:", currentUser);
+
+    // Skip updating the email if it hasn't changed
+    const updates: any = {
+      username,
+      first_name,
+      last_name,
+      phone_number,
+    };
+
+    if (email !== currentUser.email) {
+      updates.email = email;
+      updates.email_verified = false; // Set email_verified to false if email is changed
+    }
+
+    // Update user details
+    const { data: user, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === "23505" && error.details.includes("email")) {
+        // Handle unique constraint violation for email
+        return NextResponse.json(
+          { error: "This email is already in use" },
+          { status: 400 }
+        );
+      }
+      console.error("Error updating user:", error);
+      return NextResponse.json(
+        { error: "Failed to update user details" },
+        { status: 400 }
+      );
+    }
+
+    // Trigger email verification if email is updated
+    if (email !== currentUser.email) {
+      try {
+        await sendVerificationEmail(email, userId); // Reuse your existing email verification logic
+      } catch (verificationError) {
+        console.error("Error sending verification email:", verificationError);
+        return NextResponse.json(
+          { error: "Failed to send verification email" },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json({ user }, { status: 200 });
+  } catch (error: any) {
+    console.error("Error in update-user API:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
