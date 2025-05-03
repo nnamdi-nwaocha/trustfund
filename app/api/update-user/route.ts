@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     } = body;
 
     // Validate input fields
-    if (!username || !first_name || !last_name || !phone_number || !email) {
+    if (!username || !first_name || !last_name || !email) {
       console.error("Validation failed: Missing required fields");
       return NextResponse.json(
         { error: "All fields are required" },

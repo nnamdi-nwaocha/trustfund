@@ -140,6 +140,7 @@ export default function SettingsPage() {
             username: field === "username" ? value : username,
             first_name: field === "first_name" ? value : firstName,
             last_name: field === "last_name" ? value : lastName,
+            phone_number: phoneNumber, // Include static phone number
             email: field === "email" ? value.trim().toLowerCase() : email,
             isEmailChanged,
           }),
@@ -167,7 +168,7 @@ export default function SettingsPage() {
         setLoading(false);
       }
     },
-    [user, username, firstName, lastName, email, setUser]
+    [user, username, firstName, lastName, email, phoneNumber, setUser]
   );
 
   return (
@@ -287,6 +288,7 @@ export default function SettingsPage() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log("Request body:", body);
     const {
       username,
       first_name,
