@@ -14,7 +14,8 @@ export async function middleware(req: NextRequest) {
   const isProtectedRoute =
     req.nextUrl.pathname.startsWith("/dashboard") ||
     req.nextUrl.pathname.startsWith("/send-money") ||
-    req.nextUrl.pathname.startsWith("/beneficiaries");
+    req.nextUrl.pathname.startsWith("/beneficiaries") ||
+    req.nextUrl.pathname.startsWith("/settings"); // Add /settings here
 
   // Auth routes
   const isAuthRoute =
@@ -41,6 +42,7 @@ export const config = {
     "/dashboard/:path*",
     "/send-money/:path*",
     "/beneficiaries/:path*",
+    "/settings/:path*", // Add /settings here
     "/login",
   ],
 };
