@@ -1,55 +1,35 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
+import { useEffect } from "react";
 
 export function LiveChat() {
   useEffect(() => {
-    // Initialize LiveChat
-    window._lc = window._lc || {}
-    window.__lc = window.__lc || {}
-    window.__lc.license = 19142116
-    window.__lc.integration_name = "manual_channels"
-    window.__lc.product_name = "livechat"
-
-    // Load the LiveChat script
-    const script = document.createElement("script")
-    script.async = true
-    script.type = "text/javascript"
-    script.src = "https://cdn.livechatinc.com/tracking.js"
-    document.head.appendChild(script)
-
-    // Initialize LiveChat
-    window.LiveChatWidget = window.LiveChatWidget || {
-      _q: [],
-      _h: null,
-      _v: "2.0",
-      on: (...args) => {
-        window.LiveChatWidget._q.push(["on", ...args])
-      },
-      once: (...args) => {
-        window.LiveChatWidget._q.push(["once", ...args])
-      },
-      off: (...args) => {
-        window.LiveChatWidget._q.push(["off", ...args])
-      },
-      get: (...args) => {
-        if (!window.LiveChatWidget._h) throw new Error("[LiveChatWidget] You can't use getters before load.")
-        return window.LiveChatWidget._q.push(["get", ...args])
-      },
-      call: (...args) => {
-        window.LiveChatWidget._q.push(["call", ...args])
-      },
-      init: () => {},
+    // Smartsupp Live Chat script
+    window._smartsupp = window._smartsupp || {};
+    window._smartsupp.key = "e9cb2fa329510617d9d77d543fcbd37e4121683d";
+    if (!window.smartsupp) {
+      (function (d) {
+        var s,
+          c,
+          o = function () {
+            o._.push(arguments);
+          };
+        o._ = [];
+        window.smartsupp = o;
+        s = d.getElementsByTagName("script")[0];
+        c = d.createElement("script");
+        c.type = "text/javascript";
+        c.charset = "utf-8";
+        c.async = true;
+        c.src = "https://www.smartsuppchat.com/loader.js?";
+        s.parentNode.insertBefore(c, s);
+      })(document);
     }
-
-    // Clean up
+    // Cleanup: Optionally remove the script on unmount
     return () => {
-      // Remove the script when component unmounts
-      if (script.parentNode) {
-        script.parentNode.removeChild(script)
-      }
-    }
-  }, [])
+      // Optionally, you could remove the script if needed
+    };
+  }, []);
 
-  return null
+  return null;
 }
